@@ -1,41 +1,114 @@
 #include <Servo.h>
-#include <MyServo.h>
-#include <RecordButton.h>
+//include <Arduino.h>
+//#include <MyServo.h>
+//#include <RecordButton.h>
 #define BUTTON_PIN 2;
 
-RecordButton button1(BUTTON_PIN);
-MyServo s1();
+class MyServo{
+  private: 
+    Servo servo;
+    byte pin;
+    int position;
+    int speed;
+  public:
+    MyServo(byte pin, byte position){
+      this->pin = pin;
+      //this->speed = speed;
+      this->position = position;
+      init();
+      //moveServoToPos();
+    }
 
-//const int recordButtonPin = 2;
-//const int SERVONUMBER = 3;
-//Servo myServos[SERVONUMBER];
+  void init(){
+    servo.attach(pin);
+    servo.write(position);
+  }
 
-//int state = 0;
-//unsigned long currentMillis = 0;
-//unsigned long previousMillis = 0;
-//unsigned long interval = 5000;
+  void moveServoToPos(int pos){
+    servo.write(pos);
+  }
+};  
 
+class RecordButton{
+  
+  private: 
+    byte pin;
+    byte state;
+    byte lastReading;
+    unsigned long lastDebounceTime = 0;
+    unsigned long debounceDelay = 500;
+  
+  public:
+    RecordButton(byte pin){
+      this->pin = pin;
+      lastReading = LOW;
+      //init();
+      }
+      
+  void init() {
+    pinMode(pin, INPUT_PULLUP);
+    update();
+    }
+  void update(){
+    byte newReading = digitalRead(pin);
+    if (newReading != lastReading){
+        lastDebounceTime = millis();
+      }
+
+    if (millis() - lastDebounceTime > debounceDelay){
+      state = newReading;
+    }  
+    lastReading = newReading;
+  }
+
+  byte getState(){
+    update();
+    return state;
+  }
+};
+
+
+
+MyServo s1(9,90);
+//MyServo s2(10,90);
+RecordButton b1(1);
 
 void setup() {
-  //Serial.begin(9600);
+  Serial.begin(9600);
+  s1.init();
+ // s2.init();
+  b1.init();
  // pinMode(recordButtonPin, INPUT_PULLUP);
-  
   /*for (int i = 0; i < SERVONUMBER; i++) {
   myServos[i].attach(9+i);
   myServos[i].write(servoPosition);
   Serial.println(i);
 }*/
 }
-
 void loop() { 
-// currentMillis = millis();
- //moveFirstServo();
- // moveSecondServo();
-//  Serial.print(state);
-
-//if(button1.isPressed)
-//servo1on
+  Serial.println(b1.getState());
+  if(b1.getState() == 0){
+    s1.moveServoToPos(90);
+  }else{
+    s1.moveServoToPos(10);
+  }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
