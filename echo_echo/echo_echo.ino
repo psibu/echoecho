@@ -68,23 +68,29 @@ class RecordButton{
 
 
 //MyServo s2(10,90);
-#define servo1Pin 9
-#define servo1Pos 90
 
 RecordButton b1(2);
 MyServo s1(9,90);
+MyServo s2(10,90);
+MyServo s3(8,90);
 
 void setup() {
   Serial.begin(9600);
   b1.init();
   s1.init();
+  s2.init();
+  s3.init();
 }
 void loop() { 
-  Serial.println(b1.getState());
+  Serial.println(b1.getState()); 
  if (b1.getState() == 1){
    s1.moveServoToPos(90);
+   s2.moveServoToPos(0);
+   s3.moveServoToPos(120);
  }else if(b1.getState() == 0){
    s1.moveServoToPos(0);
+   s2.moveServoToPos(90);
+   s3.moveServoToPos(30);
  }
 }
 
