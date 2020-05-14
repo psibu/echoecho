@@ -1,6 +1,6 @@
 {
     "programmer": "AVR ISP",
     "board": "arduino:avr:uno",
-    "port": "/dev/tty.usbmodem14201",
+    "port": "/dev/tty.usbmodem14401",
     "sketch": "echo_echo/echo_echo.ino"
 }

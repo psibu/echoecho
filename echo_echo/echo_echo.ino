@@ -2,65 +2,64 @@
 //include <Arduino.h>
 //#include <MyServo.h>
 //#include <RecordButton.h>
-#define BUTTON_PIN 2;
+//#define BUTTON_PIN 2;
 
 class MyServo{
   private: 
     Servo servo;
     byte pin;
-    int position;
-    int speed;
+    byte position;
+    byte increment;
+    int updateInterval;
+    unsigned long lastUpdate; 
+    //int speed;
   public:
     MyServo(byte pin, byte position){
       this->pin = pin;
-      //this->speed = speed;
       this->position = position;
-      init();
-      //moveServoToPos();
+      //this->interval = interval;
+      //init();
     }
 
   void init(){
     servo.attach(pin);
     servo.write(position);
   }
+  void detatch(){
+    servo.detach();
+  }
 
-  void moveServoToPos(int pos){
+  void moveServoToPos(byte pos){
     servo.write(pos);
   }
 };  
 
 class RecordButton{
-  
   private: 
     byte pin;
     byte state;
-    byte lastReading;
-    unsigned long lastDebounceTime = 0;
-    unsigned long debounceDelay = 500;
-  
+   //byte lastReading;
+   // unsigned long lastDebounceTime = 0;
+   // unsigned long debounceDelay = 500;
   public:
     RecordButton(byte pin){
       this->pin = pin;
-      lastReading = LOW;
+      state = 0;
+      //lastReading = LOW;
       //init();
-      }
-      
+      }  
   void init() {
     pinMode(pin, INPUT_PULLUP);
     update();
     }
   void update(){
-    byte newReading = digitalRead(pin);
-    if (newReading != lastReading){
-        lastDebounceTime = millis();
-      }
-
-    if (millis() - lastDebounceTime > debounceDelay){
-      state = newReading;
-    }  
-    lastReading = newReading;
+   // state = digitalRead(pin);
+    if (digitalRead(pin) == LOW){
+        state = 1;
+    }else if(digitalRead(pin) == HIGH){
+        state = 0;
+    }
   }
-
   byte getState(){
     update();
     return state;
@@ -68,31 +67,27 @@ class RecordButton{
 };
 
 
-
-MyServo s1(9,90);
 //MyServo s2(10,90);
-RecordButton b1(1);
+#define servo1Pin 9
+#define servo1Pos 90
+
+RecordButton b1(2);
+MyServo s1(9,90);
 
 void setup() {
   Serial.begin(9600);
-  s1.init();
- // s2.init();
   b1.init();
- // pinMode(recordButtonPin, INPUT_PULLUP);
-  /*for (int i = 0; i < SERVONUMBER; i++) {
-  myServos[i].attach(9+i);
-  myServos[i].write(servoPosition);
-  Serial.println(i);
-}*/
+  s1.init();
 }
 void loop() { 
   Serial.println(b1.getState());
-  if(b1.getState() == 0){
-    s1.moveServoToPos(90);
-  }else{
-    s1.moveServoToPos(10);
-  }
+ if (b1.getState() == 1){
+   s1.moveServoToPos(90);
+ }else if(b1.getState() == 0){
+   s1.moveServoToPos(0);
+ }
 }
+
 
 
 
