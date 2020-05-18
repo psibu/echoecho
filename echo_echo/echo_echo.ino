@@ -4,27 +4,18 @@
 //#include <RecordButton.h>
 //#define BUTTON_PIN 2;
 
-#define SETUP 0;
-#define USERINPUT 1;
-#define AUTOMODE 2;
-
-
 class MyServo{
   private: 
     Servo servo;
     byte pin;
     byte position;
     byte state = 0;
-    int increment = 5;
-    int updateInterval;
+    byte increment = 5;
+    byte updateInterval;
     unsigned long lastUpdate = 0; 
-    int sweepState = 0;
+    byte sweepState = 0;
     bool finished;
     bool hasStarted;
-    //long previousMillis;
-    //long preventSoftResetInterval = 4000;
-   // unsigned long sweepDelay = 1000;
-    
     
   public:
     MyServo(byte pin, byte position){
@@ -50,33 +41,33 @@ class MyServo{
     }
     return state;
   }
-  int getPosition(){
+  byte getPosition(){
     return position;
   }
   
-  void moveServoToPos(byte pos){
-      servo.write(pos);
+  void moveServoToPos(byte p){
+      servo.write(p);
     }
 
-  void sweep(int speed){
-    if (millis() - lastUpdate > speed){
-      lastUpdate = millis();
+  void sweep(){
+    //if (millis() - lastUpdate > speed){
+    //  lastUpdate = millis();
       Serial.println("The Motor is moving towards 90");
       position  = position + increment;
       servo.write(position);
       if(position >= 90){
         hasStarted = true;
         Serial.println("The Motor is moving back towards 0");
-        Serial.println("the actual position is");
         increment = -increment;
       }
-      //Serial.println(position);
-    }  
+    
+   // }  
    } 
 
    bool isFinished(){
-     if(hasStarted && position == 0){
+     if(hasStarted && position <= 0){
      finished = true;
+     
      }
      return finished;
    }
@@ -84,6 +75,9 @@ class MyServo{
    void reset(){
      finished = false;
      hasStarted = false;
+     position = 0;
+     increment = -increment;
+     Serial.println("Reset has happened my position is" + position);
    }
 };  
 
@@ -122,8 +116,8 @@ class RecordButton{
 
 RecordButton b1(2);
 MyServo s1(9,0);
-//MyServo s2(10,90);
-MyServo s3(8,90);
+MyServo s2(10,0);
+MyServo s3(8,0);
 
 unsigned long lastMillis = 0;
 unsigned long sweepDelay = 2000;
@@ -135,25 +129,26 @@ void setup() {
   Serial.begin(9600);
   b1.init();
   s1.init();
- // s2.init();
+  s2.init();
+  s3.init();
 }
 
 void loop() {  
+   Serial.println(s1.getPosition());
   if (b1.getState() == 1){  
     moveServo = true;
     Serial.println("Move Servo is true");
   }
 
   if(moveServo == true){
-    s1.sweep(20);
+    s1.sweep();
     if(s1.isFinished()){
-      moveServo = false;
       s1.reset();
+      moveServo = false;
+      Serial.println("Move Servo is false");
+     
     }
-    Serial.println("Move Servo is false");
   }
-
-  
 }
   
   
