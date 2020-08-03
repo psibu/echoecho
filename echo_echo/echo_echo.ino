@@ -1,21 +1,19 @@
 #include <Servo.h>
-//include <Arduino.h>
-//#include <MyServo.h>
-//#include <RecordButton.h>
-//#define BUTTON_PIN 2;
 
 class MyServo{
   private: 
     Servo servo;
     byte pin;
-    byte position;
+    byte position = 0;
     byte state = 0;
-    byte increment = 5;
+    byte increment = 1;
     byte updateInterval;
     unsigned long lastUpdate = 0; 
     byte sweepState = 0;
+   
     bool finished;
     bool hasStarted;
+    bool moving = false;
     
   public:
     MyServo(byte pin, byte position){
@@ -23,8 +21,8 @@ class MyServo{
       this->position = position;
       finished = false;
       hasStarted = false;
-      //previousMillis = 0;
     }
+    
   void init(){
     servo.attach(pin);
     servo.write(position);
@@ -45,30 +43,28 @@ class MyServo{
     return position;
   }
   
-  void moveServoToPos(byte p){
-      servo.write(p);
-    }
-
   void sweep(){
-    //if (millis() - lastUpdate > speed){
-    //  lastUpdate = millis();
-      Serial.println("The Motor is moving towards 90");
-      position  = position + increment;
-      servo.write(position);
+      for (position = 0; position <= 180; position += increment) { 
+      servo.write(position);              
+      delay(15); 
+    }  
+    for (position = 180; position >= 0; position -= increment) { 
+      servo.write(position);              
+      delay(15); 
+    } 
+
+    /*
       if(position >= 90){
         hasStarted = true;
         Serial.println("The Motor is moving back towards 0");
         increment = -increment;
-      }
-    
-   // }  
+      }*/
    } 
 
    bool isFinished(){
      if(hasStarted && position <= 0){
      finished = true;
-     
-     }
+    }
      return finished;
    }
 
@@ -85,22 +81,17 @@ class RecordButton{
   private: 
     byte pin;
     byte state;
-   //byte lastReading;
-   // unsigned long lastDebounceTime = 0;
-   // unsigned long debounceDelay = 500;
   public:
     RecordButton(byte pin){
       this->pin = pin;
       state = 0;
-      //lastReading = LOW;
-      //init();
       }  
+
   void init() {
     pinMode(pin, INPUT_PULLUP);
     update();
     }
   void update(){
-   // state = digitalRead(pin);
     if (digitalRead(pin) == LOW){
         state = 1;
     }else if(digitalRead(pin) == HIGH){
@@ -113,40 +104,71 @@ class RecordButton{
   }
 };
 
-
 RecordButton b1(2);
-MyServo s1(9,0);
-MyServo s2(10,0);
-MyServo s3(8,0);
+//MyServo s1(9,0);
 
-unsigned long lastMillis = 0;
-unsigned long sweepDelay = 2000;
-unsigned long preventSoftResetInterval = 4000;
+bool moveFirstServo = false;
 
-bool moveServo = false;
+Servo noClassServoOne;
+Servo noClassServoTwo;
+Servo noClassServoThree;
+int pos = 90;  
+byte increment = 8;
 
 void setup() {
   Serial.begin(9600);
+  //s1.init();
   b1.init();
-  s1.init();
-  s2.init();
-  s3.init();
+  noClassServoOne.attach(9);
+  noClassServoTwo.attach(10);
+  noClassServoThree.attach(11);
 }
 
 void loop() {  
-   Serial.println(s1.getPosition());
+  
   if (b1.getState() == 1){  
-    moveServo = true;
-    Serial.println("Move Servo is true");
-  }
-
-  if(moveServo == true){
+     noClassServoOne.attach(9);
+    noClassServoTwo.attach(10);
+    noClassServoThree.attach(11);
+    sweepServo(noClassServoOne);
+    delay(2000);
+    sweepServo(noClassServoOne);
+    delay(500);
+    sweepServo(noClassServoTwo);
+    delay(2000); 
+    sweepServo(noClassServoTwo);
+    delay(500);
+    sweepServo(noClassServoThree);
+    delay(2000); 
+    sweepServo(noClassServoThree);
+  /*if(moveFirstServo == true){
     s1.sweep();
-    if(s1.isFinished()){
+    /*if(s1.isFinished()){
       s1.reset();
-      moveServo = false;
-      Serial.println("Move Servo is false");
-     
-    }
+      moveFirstServo = false;
+     // delay(1000);
+      
   }
+    
+}*/
+}else{
+   noClassServoOne.detach();
+  noClassServoTwo.detach();
+  noClassServoThree.detach();
+}
+}
+
+void sweepServo (Servo s){
+
+ for(pos = 90; pos <= 180; pos += increment)  
+  {                                 
+    s.write(pos);        
+    delay(15);                      
+  } 
+  for(pos = 180; pos>=90; pos-= increment)   
+  {                                
+    s.write(pos);              
+    delay(15);                     
+  } 
+
 }
