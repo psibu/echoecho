@@ -1,4 +1,7 @@
 #include <Servo.h>
+#include <CapacitiveSensor.h>
+
+//ignoring the whole servo class for now
 
 class MyServo{
   private: 
@@ -52,6 +55,8 @@ class MyServo{
       servo.write(position);              
       delay(15); 
     } 
+
+    
 
     /*
       if(position >= 90){
@@ -115,8 +120,12 @@ Servo noClassServoThree;
 int pos = 90;  
 byte increment = 8;
 
+CapacitiveSensor cs_4_2 = CapacitiveSensor(4,2);
+
+
 void setup() {
   Serial.begin(9600);
+  cs_4_2.set_CS_AutocaL_Millis(0xFFFFFFFF);
   //s1.init();
   b1.init();
   noClassServoOne.attach(9);
@@ -126,8 +135,33 @@ void setup() {
 
 void loop() {  
   
+long start = millis();
+long total1 = cs_4_2.capacitiveSensor(30);
+Serial.println(total1);
+
+if(total1 >= 1900){
+  noClassServoOne.attach(9);
+  noClassServoTwo.attach(10);
+  noClassServoThree.attach(11);
+  sweepServo(noClassServoOne);
+  delay(2000);
+  sweepServo(noClassServoOne);
+  delay(500);
+  sweepServo(noClassServoTwo);
+  delay(2000); 
+  sweepServo(noClassServoTwo);
+  delay(500);
+  sweepServo(noClassServoThree);
+  delay(2000); 
+  sweepServo(noClassServoThree);
+}else{
+  noClassServoOne.detach();
+  noClassServoTwo.detach();
+  noClassServoThree.detach();
+}
+/*
   if (b1.getState() == 1){  
-     noClassServoOne.attach(9);
+    noClassServoOne.attach(9);
     noClassServoTwo.attach(10);
     noClassServoThree.attach(11);
     sweepServo(noClassServoOne);
@@ -150,22 +184,23 @@ void loop() {
       
   }
     
-}*/
+}
 }else{
    noClassServoOne.detach();
   noClassServoTwo.detach();
   noClassServoThree.detach();
 }
+*/
 }
 
 void sweepServo (Servo s){
 
- for(pos = 90; pos <= 180; pos += increment)  
+ for(pos = 90; pos >= 0; pos -= increment)  
   {                                 
     s.write(pos);        
     delay(15);                      
   } 
-  for(pos = 180; pos>=90; pos-= increment)   
+  for(pos = 0; pos <=90; pos += increment)   
   {                                
     s.write(pos);              
     delay(15);                     
