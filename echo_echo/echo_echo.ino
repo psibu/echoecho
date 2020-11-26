@@ -11,8 +11,8 @@ Servo servo3;
 
 
 
-int pos = 180;
-byte increment = 10;
+int pos = 120;
+byte increment = 1;
 bool servosDetached;
 
 
@@ -20,35 +20,38 @@ bool servosDetached;
 void setup() {
   Serial.begin(9600);
   cs_4_2.set_CS_AutocaL_Millis(0xFFFFFFFF);
- 
+
   servo1.write(pos);
   servo2.write(pos);
   servo3.write(pos);
-  
+
   servo1.attach(D5);
   servo2.attach(D6);
   servo3.attach(D7);
- 
+
   servosDetached = false;
 }
 
 void loop() {
+
   long total1 = cs_4_2.capacitiveSensor(30);
-  //Serial.println(total1);
+  Serial.println(servo1.read());
   // Serial.println(servosDetached);
-  
+
   if (total1 > 2500) {
     Serial.println("Cap Button Pressed");
 
     if ( servosDetached == true) {
+      servo1.write(pos);
+      servo2.write(pos);
+      servo3.write(pos);
       servo1.attach(D5);
       servo2.attach(D6);
       servo3 .attach(D7);
       servosDetached = false;
-      Serial.println(servo2.read());
     }
 
-    servoSession(2000, 500);
+    servoSession(4000, 2000);
 
   } else {
 
@@ -57,16 +60,17 @@ void loop() {
     servo3.detach();
     servosDetached = true;
   }
+
 }
 
 void sweepServo(Servo s) {
-  for (pos = 180; pos >= 120; pos -= increment) {
+  for (pos = 120; pos >= 90; pos -= increment) {
     s.write(pos);
-    delay(15);
+    delay(5);
   }
-  for (pos = 120; pos <= 180; pos += increment) {
+  for (pos = 90; pos <= 120; pos += increment) {
     s.write(pos);
-    delay(15);
+    delay(5);
   }
 }
 
