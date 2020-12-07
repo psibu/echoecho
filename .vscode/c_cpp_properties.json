@@ -3,7 +3,8 @@
         {
             "name": "Mac",
             "defines": [
-                "ARDUINO=10800"
+                "ARDUINO=10800",
+                "USBCON"
             ],
             "includePath": [
                 "/Users/peterbuczkowski/Library/Arduino15/packages/esp8266/tools/**",
@@ -14,7 +15,8 @@
                 "/Applications/hardware/tools/**",
                 "/Applications/libraries/**",
                 "/Users/peterbuczkowski/Documents/dev/Arduino/hardware/tools/**",
-                "/Users/peterbuczkowski/Documents/dev/Arduino/libraries/**"
+                "/Users/peterbuczkowski/Documents/dev/Arduino/libraries/**",
+                "/Applications/Arduino.app/Contents/Java/libraries/**"
             ],
             "forcedInclude": [],
             "intelliSenseMode": "clang-x64",
