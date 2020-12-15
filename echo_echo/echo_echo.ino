@@ -58,20 +58,23 @@ CapacitiveSensor cs_4_2 = CapacitiveSensor(IN, OUT);
 
 /* 
   state 0 = serial control of all 3 servos
-  state 1 =  session
-  state 2 = all together
+  state 1 =  session // initial
+  state 2 = all together 
   state 3 = random session
 */
-byte state = 2;
+byte state = 1;
 int parsedValue = 0;
 
 Servo servo1;
 Servo servo2;
 Servo servo3;
 
-int capThreshold = 3500;
-int longPause = 6000;
-int shortPause = 3000;
+int capThreshold = 5000;
+int servoDelay = 500;
+int longPause = 4000;
+int shortPause = 1000;
+int waitfactor = 10;
+
 
 int pos = 0;
 int oldPos = 0;
@@ -79,16 +82,17 @@ int startPos = 90;
 int endPos = 120;
 
 int servoSpeed = 1;
-int updateInterval = 15;
+int updateInterval = 10;
 bool servosDetached;
 bool movingForward = false;
 
 bool capPressed = false;
 
+String description = "text";
+String combi = "";
 
 //unsigned long previousMillis = 0;
 //long interval = 1000;
-
 
 void setup(){
   Serial.begin(9600);
@@ -105,7 +109,9 @@ void setup(){
 void loop(){
   //long currentMillis = millis();
   long total1;
+
   switch(state){
+    ////////////////////////////////////////////  CASE 0 SERIAL CONTROL   //////////////////////////////////////////////////////////////
     case 0:
       if(Serial.available() > 0){
         parsedValue = Serial.parseInt();
@@ -130,38 +136,53 @@ void loop(){
         } 
       }    
     break; 
+
+    ////////////////////////////////////////////  CASE 1 Button & SESSION   //////////////////////////////////////////////////////////////
     case 1: 
       total1 = cs_4_2.capacitiveSensor(30);
-      Serial.println(total1);
+      description = "Cap val: ";
+      combi = description + total1;
+      Serial.println(combi);
+      
       if (total1 > capThreshold && capPressed == false){
         capPressed = true;
         Serial.println("Cap Button Pressed");
       }
+
       if(capPressed == true){
         servoSession(longPause);
         capPressed = false;
       }
+
     break;
+
+    ////////////////////////////////////////////  CASE 2 Button & ALL   //////////////////////////////////////////////////////////////
     case 2:
     total1 = cs_4_2.capacitiveSensor(30);
-    Serial.println(total1);
+    description = "Cap val: ";
+    combi = description + total1;
+    Serial.println(combi);
+    
     if (total1 > capThreshold && capPressed == false){
         capPressed = true;
         Serial.println("Cap Button Pressed");
       }
-      if(capPressed == true){
-        sweepAll(100);
-        capPressed = false;
+
+    if(capPressed == true){
+      //sweepAll();
+      
+      capPressed = false;
       }
     break;
+    ////////////////////////////////////////////  DEFAULT  //////////////////////////////////////////////////////////////
     default:
-      servo1.write(0);
-      servo2.write(0);
-      servo3.write(0);
+      servo1.write(startPos);
+      servo2.write(startPos);
+      servo3.write(startPos);
   }
 }
 
-//Function to sweep a Servo from Start to Endposition and Back
+//Sweep Servo
 void sweepServo(Servo s){
   for (pos = startPos; pos <= endPos; pos += servoSpeed){
     s.write(pos);
@@ -172,12 +193,13 @@ void sweepServo(Servo s){
     delay(updateInterval);
   }
 }
-
+//Back or forth one direction (no sweep)
 void pressButton(Servo s){
   if(!movingForward){
     for (pos = startPos; pos <= endPos; pos += servoSpeed){
       s.write(pos);
       delay(updateInterval);
+      
     }
   }else if(movingForward){
     for (pos = endPos; pos >= startPos; pos -= servoSpeed){
@@ -185,6 +207,28 @@ void pressButton(Servo s){
     delay(updateInterval);
     } 
   }
+}
+
+//SESSION BAF 
+void servoSession(int longPause){
+  
+  pressButton(servo1);
+  delay(servoDelay);
+  pressButton(servo2);
+  delay(servoDelay);
+  pressButton(servo3);
+  
+
+  movingForward = !movingForward;  
+  delay(servoDelay * waitfactor);
+  pressButton(servo3);
+  delay(servoDelay);
+  pressButton(servo2);
+  delay(servoDelay);
+  pressButton(servo1);
+  delay(servoDelay);
+
+  movingForward = !movingForward;  
 }
 
 void pressMultiButtons(){
@@ -204,23 +248,15 @@ void pressMultiButtons(){
     }
   }
 }
- 
-void servoSession(int longPause){
-  pressButton(servo1);
-  delay(longPause);
-  pressButton(servo2);
-  delay(longPause);
-  pressButton(servo3);
-  movingForward = !movingForward;
-}
 
-void sweepAll(int longPause){
+/*void sweepAll(int longPause){
   pressMultiButtons();
   movingForward = !movingForward;
-}
-void sweepAll(){
+}*/
+
+/*void sweepAll(){
   sweepServo(servo1);
   sweepServo(servo2);
   sweepServo(servo3);
   delay(2000);
-}
+}*/
