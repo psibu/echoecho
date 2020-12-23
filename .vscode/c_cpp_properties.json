@@ -3,20 +3,20 @@
         {
             "name": "Mac",
             "defines": [
-                "ARDUINO=10800",
-                "USBCON"
+                "ARDUINO=10800"
             ],
             "includePath": [
                 "/Users/peterbuczkowski/Library/Arduino15/packages/esp8266/tools/**",
                 "/Users/peterbuczkowski/Library/Arduino15/packages/esp8266/hardware/esp8266/2.7.4/**",
                 "/Applications/Arduino.app/Contents/Java/tools/**",
                 "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/**",
-                "/Users/peterbuczkowski/Library/Arduino15/packages/arduino/hardware/**",
-                "/Users/peterbuczkowski/Library/Arduino15/packages/esp32/hardware/**",
-                "/Users/peterbuczkowski/Library/Arduino15/packages/esp8266/hardware/**",
                 "${workspaceRoot}",
+                "/Applications/hardware/tools/**",
+                "/Applications/libraries/**",
+                "/Users/peterbuczkowski/Documents/dev/Arduino/hardware/tools/**",
                 "/Users/peterbuczkowski/Documents/dev/Arduino/libraries/**",
-                "/Applications/Arduino.app/Contents/Java/libraries/**"
+                "/Users/peterbuczkowski/Library/Arduino15/packages/arduino/hardware/avr/1.8.3/**",
+                "/Users/peterbuczkowski/Library/Arduino15/packages/arduino/tools/**"
             ],
             "forcedInclude": [],
             "intelliSenseMode": "clang-x64",
