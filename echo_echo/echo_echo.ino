@@ -70,14 +70,19 @@ Servo servo2;
 Servo servo3;
 
 int capThreshold = 5000;
-int servoDelay = 500;
+int servoDelay = 1000;
 int longPause = 4000;
 int shortPause = 1000;
-int waitfactor = 10;
+int waitfactor = 0;
 
 
 int pos = 0;
 int oldPos = 0;
+long previousMillis = 0;
+const int interval = 20;
+
+
+
 int startPos = 90;
 int endPos = 120;
 
@@ -87,13 +92,25 @@ bool servosDetached;
 bool movingForward = false;
 
 bool capPressed = false;
+bool lastCapPressed = true;
+unsigned long lastDebounceTime = 0;
+unsigned long debounceDelay = 50;
+
+long total1;
+
+//smoothing vars sensor
+const int numReadings = 10;
+int readings[numReadings];      // the readings from the analog input
+int readIndex = 0;              // the index of the current reading
+int totalSmooth = 0;                  // the running total
+int average = 0;                // the average
 
 String description = "text";
 String combi = "";
 
-//unsigned long previousMillis = 0;
-//long interval = 1000;
 
+
+//long interval = 1000;
 void setup(){
   Serial.begin(9600);
   cs_4_2.set_CS_AutocaL_Millis(0xFFFFFFFF);
@@ -104,12 +121,15 @@ void setup(){
   servo2.write(startPos); 
   servo3.write(startPos);
   servosDetached = false;
+//set smoothing positions to 0
+for (int i = 0; i < numReadings; i++) {
+    readings[i] = 0;
+  } 
 }
 
 void loop(){
-  //long currentMillis = millis();
-  long total1;
-
+  //unsigned long currentMillis = millis();
+  bool reading = capPressed;
   switch(state){
     ////////////////////////////////////////////  CASE 0 SERIAL CONTROL   //////////////////////////////////////////////////////////////
     case 0:
@@ -137,51 +157,86 @@ void loop(){
       }    
     break; 
 
-    ////////////////////////////////////////////  CASE 1 Button & SESSION   //////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////  CASE 1 Button / Waiting   //////////////////////////////////////////////////////////////
     case 1: 
       total1 = cs_4_2.capacitiveSensor(30);
       description = "Cap val: ";
-      combi = description + total1;
-      Serial.println(combi);
+      average = total1;
+     // average = smoothCapValues(total1); 
+      combi = description + average;
+      Serial.println(average);
+
       
-      if (total1 > capThreshold && capPressed == false){
-        capPressed = true;
-        Serial.println("Cap Button Pressed");
+      if (reading != lastCapPressed){
+        lastDebounceTime = millis();
       }
 
-      if(capPressed == true){
-        servoSession(longPause);
+      if(average < capThreshold && millis() - lastDebounceTime > debounceDelay){
+        Serial.println("Cap Pressed");
+        if(reading != capPressed){
+          capPressed = reading;
+          if(capPressed == true){
+             //movingForward = !movingForward;
+             state =  2;
+          }
+        }
+      }
+      lastCapPressed = reading;
+
+  // press cap...
+  // if thresahold bigger move motor once 
+  // debounce, so it moves only once
+
+    //button = cappressed 
+    //led = motor move once
+
+
+    // if (average > capThreshold && capPressed == false){
+      
+       
+     
+     /* if(capPressed == true){
+        servoSession(servoDelay);
         capPressed = false;
-      }
-
+      }*/
+    break;
+    case 2:
+        Serial.println("////////////////////////////////////////////");
+        pressButton(servo1); 
+        state = 1;
     break;
 
     ////////////////////////////////////////////  CASE 2 Button & ALL   //////////////////////////////////////////////////////////////
-    case 2:
-    total1 = cs_4_2.capacitiveSensor(30);
+    case 3:
+    total1 = cs_4_2.capacitiveSensor(300);
     description = "Cap val: ";
-    combi = description + total1;
+    average = smoothCapValues(total1);
+    combi = description + average;
     Serial.println(combi);
     
-    if (total1 > capThreshold && capPressed == false){
+    if (average < capThreshold && capPressed == false){
         capPressed = true;
         Serial.println("Cap Button Pressed");
+        //state = 4;
       }
 
     if(capPressed == true){
       //sweepAll();
-      
       capPressed = false;
       }
     break;
+      
+  
     ////////////////////////////////////////////  DEFAULT  //////////////////////////////////////////////////////////////
     default:
       servo1.write(startPos);
       servo2.write(startPos);
       servo3.write(startPos);
-  }
+  } 
 }
 
+
+//////////////////////////////////////////////  SERVO CONTROLL   ////////////////////////////////////////////
 //Sweep Servo
 void sweepServo(Servo s){
   for (pos = startPos; pos <= endPos; pos += servoSpeed){
@@ -199,7 +254,6 @@ void pressButton(Servo s){
     for (pos = startPos; pos <= endPos; pos += servoSpeed){
       s.write(pos);
       delay(updateInterval);
-      
     }
   }else if(movingForward){
     for (pos = endPos; pos >= startPos; pos -= servoSpeed){
@@ -210,25 +264,22 @@ void pressButton(Servo s){
 }
 
 //SESSION BAF 
-void servoSession(int longPause){
-  
+void servoSession(int _delay){
   pressButton(servo1);
-  delay(servoDelay);
+  //delay(_delay);
   pressButton(servo2);
-  delay(servoDelay);
+  //delay(_delay);
   pressButton(servo3);
-  
-
-  movingForward = !movingForward;  
-  delay(servoDelay * waitfactor);
+  //movingForward = !movingForward;  
+  /*delay(servoDelay * waitfactor);
   pressButton(servo3);
   delay(servoDelay);
   pressButton(servo2);
   delay(servoDelay);
   pressButton(servo1);
-  delay(servoDelay);
+  delay(servoDelay);*/
 
-  movingForward = !movingForward;  
+  //movingForward = !movingForward;  
 }
 
 void pressMultiButtons(){
@@ -247,6 +298,21 @@ void pressMultiButtons(){
       delay(updateInterval);
     }
   }
+}
+
+
+//calculations
+int smoothCapValues(long capVal){
+   totalSmooth = totalSmooth - readings[readIndex];
+    readings[readIndex] = capVal;
+    totalSmooth = totalSmooth + readings[readIndex];
+    readIndex = readIndex + 1;
+    if (readIndex >= numReadings) {
+      readIndex = 0;
+    }
+    average = totalSmooth / numReadings;
+    delay(1);        
+    return(average);
 }
 
 /*void sweepAll(int longPause){
