@@ -92,7 +92,7 @@ unsigned long time_now = 0;
 
 void setup(){
   Serial.begin(9600);
-  cs_4_2.set_CS_AutocaL_Millis(0xFFFFFFFF);
+  cs_4_2.set_CS_AutocaL_Millis(0xFFFFFFFF); // -1(0xFFF..) = methode ist ausgeschaltet
   servo1.attach(14); //GPIO 14 But D5
   servo2.attach(12); //GPIO 12 But D6
   servo3.attach(13); //GPIO 13 But D7
